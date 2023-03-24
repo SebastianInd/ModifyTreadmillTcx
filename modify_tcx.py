@@ -1,9 +1,7 @@
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
-from datetime import datetime
 
 # Afterwards, need to copy the header from the original file, change the CRLF to LF, and remove all np1: in the tags. Then it should be working.
-# TODO: the altitude is still not correctly computed...
 
 # define the namespace dictionary
 NS = {'tcx': 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2'}
@@ -55,49 +53,42 @@ lap_values = [
 tree = ET.parse('my_activity.tcx')
 root = tree.getroot()
 
-# Initialize lists to store distance and altitude values
+# Distance and altitude values for plotting
 distances = []
 altitudes = []
 
-prev_time = None
-total_distance = 0.0
-total_altitude = 0.0
+# Accumulated distance and altitude
+current_distance = 0.0
+current_altitude = 0.0
 
 # Iterate over each Lap element
-for i, lap in enumerate(root.findall('.//tcx:Lap', NS)):
+for lap, lap_value in zip(root.findall('.//tcx:Lap', NS), lap_values):
     # Get the speed and gradient values for this lap from the list of lap_values
-    speed, gradient = lap_values[i]
-    # Convert speed from kilometer per hour to meters per second
-    speed = speed / 3.6
+    speed_kmh, gradient = lap_value
+    speed = speed_kmh / 3.6
 
     # Correct the distance for this lap, based on the user input
     time = float(lap.find('tcx:TotalTimeSeconds', NS).text)
-    lap.find('tcx:DistanceMeters', NS).text = str(speed * time)
+    lap_distance = speed * time
+    lap.find('tcx:DistanceMeters', NS).text = str(lap_distance)
 
     # Update the Trackpoint elements within this Lap with corrected distance and altitude values
     track = lap.find('tcx:Track', NS)
-    for trackpoint in track.findall('tcx:Trackpoint', NS):
-        time_str = trackpoint.find('tcx:Time', NS).text
-        time = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S.%fZ')
-        if prev_time is None:
-            prev_time = time
+    trackpoints = track.findall('tcx:Trackpoint', NS)
+    delta_distance = lap_distance / len(trackpoints)
+    delta_altitude = delta_distance * gradient / 100
 
-        delta_time = (time - prev_time).total_seconds()
-        delta_distance = delta_time * speed
-        delta_altitude = delta_distance * gradient / 100
+    for trackpoint in trackpoints:
+        current_distance += delta_distance
+        current_altitude += delta_altitude
 
-        total_distance += delta_distance
-        total_altitude += delta_altitude
-
-        trackpoint.find('tcx:DistanceMeters', NS).text = str(total_distance)
+        trackpoint.find('tcx:DistanceMeters', NS).text = str(current_distance)
         trackpoint.append(ET.Element('{{{tcx}}}AltitudeMeters'.format(**NS)))
-        trackpoint.find('tcx:AltitudeMeters', NS).text = str(total_altitude)
-
-        prev_time = time
+        trackpoint.find('tcx:AltitudeMeters', NS).text = str(current_altitude)
 
         # Add the distance and altitude values to the lists to plot
-        distances.append(total_distance)
-        altitudes.append(total_altitude)
+        distances.append(current_distance)
+        altitudes.append(current_altitude)
 
 # Write the updated TCX file to disk
 tree.write('my_activity_corrected.tcx', encoding='UTF-8', xml_declaration=True)
