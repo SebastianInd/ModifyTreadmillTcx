@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Speed and gradient values for each lap
 lap_values = [
@@ -45,14 +46,17 @@ lap_values = [
 ]
 
 # Define the namespaces and register them
-NS = {'tcx': 'http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2',
-      'tpx': 'http://www.garmin.com/xmlschemas/ActivityExtension/v2'}
-ET.register_namespace('', NS['tcx'])
-ET.register_namespace('tpx', NS['tpx'])
+NS = {
+    "tcx": "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2",
+    "tpx": "http://www.garmin.com/xmlschemas/ActivityExtension/v2",
+}
+ET.register_namespace("", NS["tcx"])
+ET.register_namespace("tpx", NS["tpx"])
 
 
 # Load the TCX file into an ElementTree object
-tree = ET.parse('my_activity.tcx')
+file_name = "my_activity"
+tree = ET.parse(f"{file_name}.tcx")
 root = tree.getroot()
 
 # Distance and altitude values for plotting
@@ -65,9 +69,10 @@ paces = []
 current_distance = 0.0
 current_altitude = 0.0
 
-laps = root.findall('.//tcx:Lap', NS)
+laps = root.findall(".//tcx:Lap", NS)
 assert len(laps) == len(
-    lap_values), f"The tcx file has {len(laps)} laps, while {len(lap_values)} values were given!"
+    lap_values
+), f"The tcx file has {len(laps)} laps, while {len(lap_values)} values were given!"
 
 # Iterate over each Lap element
 for lap, lap_value in zip(laps, lap_values):
@@ -76,13 +81,13 @@ for lap, lap_value in zip(laps, lap_values):
     speed = speed_kmh / 3.6
 
     # Correct the distance for this lap, based on the user input
-    time = float(lap.find('tcx:TotalTimeSeconds', NS).text)
+    time = float(lap.find("tcx:TotalTimeSeconds", NS).text)
     lap_distance = speed * time
-    lap.find('tcx:DistanceMeters', NS).text = str(lap_distance)
+    lap.find("tcx:DistanceMeters", NS).text = str(lap_distance)
 
     # Update the Trackpoint elements within this Lap with corrected distance and altitude values
-    track = lap.find('tcx:Track', NS)
-    trackpoints = track.findall('tcx:Trackpoint', NS)
+    track = lap.find("tcx:Track", NS)
+    trackpoints = track.findall("tcx:Trackpoint", NS)
     delta_distance = lap_distance / len(trackpoints)
     delta_altitude = delta_distance * gradient / 100
 
@@ -90,28 +95,29 @@ for lap, lap_value in zip(laps, lap_values):
         current_distance += delta_distance
         current_altitude += delta_altitude
 
-        old_paces.append(float(trackpoint.find('.//tpx:Speed', NS).text))
+        old_paces.append(float(trackpoint.find(".//tpx:Speed", NS).text))
 
-        trackpoint.find('tcx:DistanceMeters', NS).text = str(current_distance)
-        trackpoint.append(ET.Element('{{{tcx}}}AltitudeMeters'.format(**NS)))
-        trackpoint.find('tcx:AltitudeMeters', NS).text = str(current_altitude)
-        trackpoint.find('.//tpx:Speed', NS).text = str(speed)
+        trackpoint.find("tcx:DistanceMeters", NS).text = str(current_distance)
+        trackpoint.append(ET.Element("{{{tcx}}}AltitudeMeters".format(**NS)))
+        trackpoint.find("tcx:AltitudeMeters", NS).text = str(current_altitude)
+        trackpoint.find(".//tpx:Speed", NS).text = str(speed)
 
         # Add the distance and altitude values to the lists to plot
         distances.append(current_distance)
         altitudes.append(current_altitude)
-        paces.append(float(trackpoint.find('.//tpx:Speed', NS).text))
+        paces.append(float(trackpoint.find(".//tpx:Speed", NS).text))
 
 # Write the updated TCX file to disk
-tree.write('my_activity_corrected.tcx', encoding='UTF-8', xml_declaration=True)
+tree.write(f"{file_name}_corrected.tcx", encoding="UTF-8", xml_declaration=True)
 
 # Create a plot of distance, altitude and pace
-fig, axs = plt.subplots(3)
-axs[0].plot(distances, label="distances")
-axs[1].plot(altitudes, label="altitudes")
-axs[2].plot(paces, 'g', label="paces")
-axs[2].plot(old_paces, 'r', label="old paces")
-axs[2].legend()
+fig, axs = plt.subplots(2)
+axs[0].plot(distances, altitudes)
+axs[0].set(xlabel = "distance [km]", ylabel = "altitude [m]")
+axs[1].plot(distances, np.array(paces) * 3.6, "g", label="paces")
+axs[1].plot(distances, np.array(old_paces) * 3.6, "r", label="old paces")
+axs[1].legend()
+axs[1].set(xlabel = "distance [km]", ylabel = "speed [km/h]")
 
 plt.show()
 pass
