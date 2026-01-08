@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TCX Treadmill Modifier</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🏃 TCX Treadmill Modifier</h1>
+        <p class="subtitle">Modify pace and incline for your treadmill runs</p>
+      </header>
+
+      <!-- File Upload Section -->
+      <section class="upload-section" id="uploadSection">
+        <div class="upload-box" id="uploadBox">
+          <div class="upload-icon">📁</div>
+          <h2>Upload TCX File</h2>
+          <p>Drag and drop your TCX file here or click to browse</p>
+          <input type="file" id="fileInput" accept=".tcx" hidden />
+          <button
+            class="btn-primary"
+            onclick="document.getElementById('fileInput').click()"
+          >
+            Choose File
+          </button>
+        </div>
+      </section>
+
+      <!-- Main Content (hidden until file is loaded) -->
+      <div id="mainContent" class="hidden">
+        <!-- File Info -->
+        <section class="file-info">
+          <div class="info-card">
+            <h3 id="fileName">File: -</h3>
+            <p id="fileStats">Laps: - | Total Time: -</p>
+          </div>
+          <button class="btn-secondary" onclick="resetApp()">
+            Upload New File
+          </button>
+        </section>
+
+        <!-- Lap Data Table -->
+        <section class="table-section">
+          <h2>Lap Data</h2>
+          <p class="table-hint">
+            💡 Click on speed or incline values to edit them
+          </p>
+          <div class="table-container">
+            <table id="lapTable">
+              <thead>
+                <tr>
+                  <th>Lap</th>
+                  <th>Time (mm:ss)</th>
+                  <th>Current Speed (km/h)</th>
+                  <th>New Speed (km/h)</th>
+                  <th>Current Incline (%)</th>
+                  <th>New Incline (%)</th>
+                </tr>
+              </thead>
+              <tbody id="lapTableBody">
+                <!-- Populated by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Visualization Section -->
+        <section class="charts-section">
+          <h2>Visualization</h2>
+          <div class="charts-container">
+            <div class="chart-wrapper">
+              <h3>Altitude Profile</h3>
+              <canvas id="altitudeChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+              <h3>Speed Comparison</h3>
+              <canvas id="speedChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Action Buttons -->
+        <section class="action-section">
+          <button
+            class="btn-correct"
+            id="correctBtn"
+            onclick="generateCorrectedFile()"
+          >
+            ✅ Correct & Download TCX
+          </button>
+        </section>
+      </div>
+    </div>
+
+    <footer>
+      <p>Built for treadmill runners | Modify your TCX files with ease</p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
