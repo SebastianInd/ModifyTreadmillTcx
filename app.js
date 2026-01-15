@@ -88,6 +88,7 @@ function parseTCX(xmlString) {
   displayMainContent();
   populateTable();
   updateCharts();
+  updateSummary();
 }
 
 // Extract lap data from TCX
@@ -228,6 +229,7 @@ function editCell(lapIndex, field, cell) {
     }
     cell.textContent = newValue.toFixed(2);
     updateCharts();
+    updateSummary();
   };
 
   input.onkeypress = function (e) {
@@ -246,6 +248,47 @@ function editCell(lapIndex, field, cell) {
 function updateCharts() {
   updateAltitudeChart();
   updateSpeedChart();
+}
+
+// Update summary
+function updateSummary() {
+  let totalTime = 0;
+  let totalDistance = 0;
+  let totalClimb = 0;
+
+  lapData.forEach((lap) => {
+    totalTime += lap.totalTime;
+    const speed = lap.newSpeed / 3.6; // km/h to m/s
+    totalDistance += speed * lap.totalTime;
+    totalClimb += (speed * lap.totalTime * lap.newIncline) / 100;
+  });
+
+  const avgSpeed = totalTime > 0 ? (totalDistance / totalTime) * 3.6 : 0;
+
+  // Format time (HH:MM:SS or MM:SS)
+  const hours = Math.floor(totalTime / 3600);
+  const minutes = Math.floor((totalTime % 3600) / 60);
+  const seconds = Math.floor(totalTime % 60);
+  let timeStr = "";
+  if (hours > 0) {
+    timeStr = `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  } else {
+    timeStr = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  }
+
+  document.getElementById("totalTimeValue").textContent = timeStr;
+  document.getElementById("avgSpeedValue").textContent = `${avgSpeed.toFixed(
+    2
+  )} km/h`;
+  document.getElementById(
+    "totalDistanceValue"
+  ).textContent = `${(totalDistance / 1000).toFixed(2)} km`;
+  document.getElementById("totalClimbValue").textContent = `${Math.max(
+    0,
+    totalClimb
+  ).toFixed(1)} m`;
 }
 
 // Update altitude chart
@@ -580,6 +623,11 @@ function resetApp() {
   tcxDoc = null;
   lapData = [];
   originalFileName = "";
+
+  document.getElementById("totalTimeValue").textContent = "-";
+  document.getElementById("avgSpeedValue").textContent = "-";
+  document.getElementById("totalDistanceValue").textContent = "-";
+  document.getElementById("totalClimbValue").textContent = "-";
 
   if (altitudeChart) {
     altitudeChart.destroy();
