@@ -305,6 +305,14 @@ tbody tr:hover {
   color: var(--secondary-color);
 }
 
+.action-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
 /* Summary Section */
 .summary-section {
   margin-bottom: 3rem;
