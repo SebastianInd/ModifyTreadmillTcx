@@ -113,11 +113,11 @@ tree.write(f"{file_name}_corrected.tcx", encoding="UTF-8", xml_declaration=True)
 # Create a plot of distance, altitude and pace
 fig, axs = plt.subplots(2)
 axs[0].plot(distances, altitudes)
-axs[0].set(xlabel = "distance [km]", ylabel = "altitude [m]")
+axs[0].set(xlabel="distance [km]", ylabel="altitude [m]")
 axs[1].plot(distances, np.array(paces) * 3.6, "g", label="paces")
 axs[1].plot(distances, np.array(old_paces) * 3.6, "r", label="old paces")
 axs[1].legend()
-axs[1].set(xlabel = "distance [km]", ylabel = "speed [km/h]")
+axs[1].set(xlabel="distance [km]", ylabel="speed [km/h]")
 
 plt.show()
 pass

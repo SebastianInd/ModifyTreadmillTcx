@@ -102,14 +102,14 @@ function extractLapData() {
     // Get total time
     const timeElement = lap.getElementsByTagNameNS(
       NS.tcx,
-      "TotalTimeSeconds"
+      "TotalTimeSeconds",
     )[0];
     const totalTime = parseFloat(timeElement.textContent);
 
     // Get distance
     const distanceElement = lap.getElementsByTagNameNS(
       NS.tcx,
-      "DistanceMeters"
+      "DistanceMeters",
     )[0];
     const distance = parseFloat(distanceElement.textContent);
 
@@ -125,7 +125,7 @@ function extractLapData() {
       const firstTrackpoint = trackpoints[0];
       const speedElement = firstTrackpoint.getElementsByTagNameNS(
         NS.tpx,
-        "Speed"
+        "Speed",
       )[0];
       if (speedElement) {
         speedFromExtension = parseFloat(speedElement.textContent) * 3.6; // m/s to km/h
@@ -137,7 +137,7 @@ function extractLapData() {
     if (trackpoints.length > 1) {
       const firstAlt = trackpoints[0].getElementsByTagNameNS(
         NS.tcx,
-        "AltitudeMeters"
+        "AltitudeMeters",
       )[0];
       const lastAlt = trackpoints[
         trackpoints.length - 1
@@ -167,31 +167,29 @@ function displayMainContent() {
   document.getElementById("mainContent").classList.remove("hidden");
 
   // Update file info
-  document.getElementById(
-    "fileName"
-  ).textContent = `File: ${originalFileName}.tcx`;
+  document.getElementById("fileName").textContent =
+    `File: ${originalFileName}.tcx`;
 
   const totalTime = lapData.reduce((sum, lap) => sum + lap.totalTime, 0);
   const minutes = Math.floor(totalTime / 60);
   const seconds = Math.floor(totalTime % 60);
 
-  document.getElementById(
-    "fileStats"
-  ).textContent = `Laps: ${lapData.length} | Total Time: ${minutes}m ${seconds}s`;
+  document.getElementById("fileStats").textContent =
+    `Laps: ${lapData.length} | Total Time: ${minutes}m ${seconds}s`;
 }
 
 // Populate table with lap data
 function populateTable() {
-    const tbody = document.getElementById('lapTableBody');
-    tbody.innerHTML = '';
-    
-    lapData.forEach((lap, index) => {
-        const row = document.createElement('tr');
-        const minutes = Math.floor(lap.totalTime / 60);
-        const seconds = Math.floor(lap.totalTime % 60);
-        const timeFormatted = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        
-        row.innerHTML = `
+  const tbody = document.getElementById("lapTableBody");
+  tbody.innerHTML = "";
+
+  lapData.forEach((lap, index) => {
+    const row = document.createElement("tr");
+    const minutes = Math.floor(lap.totalTime / 60);
+    const seconds = Math.floor(lap.totalTime % 60);
+    const timeFormatted = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+    row.innerHTML = `
             <td>${lap.lapNumber}</td>
             <td>${timeFormatted}</td>
             <td>${lap.currentSpeed.toFixed(2)}</td>
@@ -280,14 +278,13 @@ function updateSummary() {
 
   document.getElementById("totalTimeValue").textContent = timeStr;
   document.getElementById("avgSpeedValue").textContent = `${avgSpeed.toFixed(
-    2
+    2,
   )} km/h`;
-  document.getElementById(
-    "totalDistanceValue"
-  ).textContent = `${(totalDistance / 1000).toFixed(2)} km`;
+  document.getElementById("totalDistanceValue").textContent =
+    `${(totalDistance / 1000).toFixed(2)} km`;
   document.getElementById("totalClimbValue").textContent = `${Math.max(
     0,
-    totalClimb
+    totalClimb,
   ).toFixed(1)} m`;
 }
 
@@ -326,57 +323,59 @@ function updateAltitudeChart() {
     altitudeChart.destroy();
   }
 
-    // Calculate appropriate x-axis step size
-    const maxDistance = Math.max(...distances);
-    let stepSize = 1; // Default 1 km
-    if (maxDistance > 20) stepSize = 2;
-    if (maxDistance > 40) stepSize = 5;
-    if (maxDistance > 100) stepSize = 10;
-    
-    altitudeChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: distances,
-            datasets: [{
-                label: 'Altitude (m)',
-                data: altitudes,
-                borderColor: '#8b5cf6',
-                backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0
-            }]
+  // Calculate appropriate x-axis step size
+  const maxDistance = Math.max(...distances);
+  let stepSize = 1; // Default 1 km
+  if (maxDistance > 20) stepSize = 2;
+  if (maxDistance > 40) stepSize = 5;
+  if (maxDistance > 100) stepSize = 10;
+
+  altitudeChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: distances,
+      datasets: [
+        {
+          label: "Altitude (m)",
+          data: altitudes,
+          borderColor: "#8b5cf6",
+          backgroundColor: "rgba(139, 92, 246, 0.1)",
+          fill: true,
+          tension: 0.4,
+          pointRadius: 0,
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#f1f5f9'
-                    }
-                }
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          labels: {
+            color: "#f1f5f9",
+          },
+        },
+      },
+      scales: {
+        x: {
+          type: "linear",
+          title: {
+            display: true,
+            text: "Distance (km)",
+            color: "#cbd5e1",
+          },
+          ticks: {
+            color: "#cbd5e1",
+            stepSize: stepSize,
+            callback: function (value) {
+              return value.toFixed(1);
             },
-            scales: {
-                x: {
-                    type: 'linear',
-                    title: {
-                        display: true,
-                        text: 'Distance (km)',
-                        color: '#cbd5e1'
-                    },
-                    ticks: {
-                        color: '#cbd5e1',
-                        stepSize: stepSize,
-                        callback: function(value) {
-                            return value.toFixed(1);
-                        }
-                    },
-                    grid: {
-                        color: 'rgba(71, 85, 105, 0.3)'
-                    }
-                },
-                y: {
+          },
+          grid: {
+            color: "rgba(71, 85, 105, 0.3)",
+          },
+        },
+        y: {
           title: {
             display: true,
             text: "Altitude (m)",
@@ -427,60 +426,61 @@ function updateSpeedChart() {
     speedChart.destroy();
   }
 
-    // Calculate appropriate x-axis step size
-    const maxDistance = Math.max(...distances);
-    let stepSize = 1; // Default 1 km
-    if (maxDistance > 20) stepSize = 2;
-    if (maxDistance > 40) stepSize = 5;
-    if (maxDistance > 100) stepSize = 10;
-    
-    speedChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: distances,
-            datasets: [
-                {
-                    label: 'Original Speed (km/h)',
-                    data: oldSpeeds,
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    tension: 0.4,
-                    pointRadius: 0
-                },
-                {
-                    label: 'New Speed (km/h)',
-                    data: newSpeeds,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    tension: 0.4,
-                    pointRadius: 0
-                }
-            ]
+  // Calculate appropriate x-axis step size
+  const maxDistance = Math.max(...distances);
+  let stepSize = 1; // Default 1 km
+  if (maxDistance > 20) stepSize = 2;
+  if (maxDistance > 40) stepSize = 5;
+  if (maxDistance > 100) stepSize = 10;
+
+  speedChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: distances,
+      datasets: [
+        {
+          label: "Original Speed (km/h)",
+          data: oldSpeeds,
+          borderColor: "#ef4444",
+          backgroundColor: "rgba(239, 68, 68, 0.1)",
+          tension: 0.4,
+          pointRadius: 0,
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#f1f5f9'
-                    }
-                }
+        {
+          label: "New Speed (km/h)",
+          data: newSpeeds,
+          borderColor: "#10b981",
+          backgroundColor: "rgba(16, 185, 129, 0.1)",
+          tension: 0.4,
+          pointRadius: 0,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          labels: {
+            color: "#f1f5f9",
+          },
+        },
+      },
+      scales: {
+        x: {
+          type: "linear",
+          title: {
+            display: true,
+            text: "Distance (km)",
+            color: "#cbd5e1",
+          },
+          ticks: {
+            color: "#cbd5e1",
+            stepSize: stepSize,
+            callback: function (value) {
+              return value.toFixed(1);
             },
-            scales: {
-                x: {
-                    type: 'linear',
-                    title: {
-                        display: true,
-                        text: 'Distance (km)',
-                        color: '#cbd5e1'
-                    },    ticks: {
-                        color: '#cbd5e1',
-                        stepSize: stepSize,
-                        callback: function(value) {
-                            return value.toFixed(1);
-                        }
-                    },
+          },
           grid: {
             color: "rgba(71, 85, 105, 0.3)",
           },
@@ -506,23 +506,41 @@ function updateSpeedChart() {
 // Generate corrected TCX file
 function generateCorrectedFile() {
   const laps = tcxDoc.getElementsByTagNameNS(NS.tcx, "Lap");
+  let totalTimeOffset = 0; // in milliseconds
+  let lastTrackpointTime = null;
+  const GAP_THRESHOLD = 30000; // 30 seconds in milliseconds
 
-  lapData.forEach((lap, index) => {
+  for (let index = 0; index < laps.length; index++) {
     const lapElement = laps[index];
+    const lap = lapData[index];
     const speed = lap.newSpeed / 3.6; // km/h to m/s
     const gradient = lap.newIncline;
+
+    // Update lap StartTime if offset exists
+    const startTimeElement = lapElement.getElementsByTagNameNS(
+      NS.tcx,
+      "StartTime",
+    )[0];
+    if (startTimeElement) {
+      let startTime = new Date(startTimeElement.textContent);
+      startTime = new Date(startTime.getTime() - totalTimeOffset);
+      startTimeElement.textContent = startTime.toISOString();
+    }
 
     // Update lap distance
     const lapDistance = speed * lap.totalTime;
     const distanceElement = lapElement.getElementsByTagNameNS(
       NS.tcx,
-      "DistanceMeters"
+      "DistanceMeters",
     )[0];
     distanceElement.textContent = lapDistance.toFixed(2);
 
     // Update trackpoints
     const track = lapElement.getElementsByTagNameNS(NS.tcx, "Track")[0];
+    if (!track) continue;
+
     const trackpoints = track.getElementsByTagNameNS(NS.tcx, "Trackpoint");
+    if (trackpoints.length === 0) continue;
 
     const deltaDistance = lapDistance / trackpoints.length;
     const deltaAltitude = (deltaDistance * gradient) / 100;
@@ -535,13 +553,33 @@ function generateCorrectedFile() {
     for (let i = 0; i < trackpoints.length; i++) {
       const trackpoint = trackpoints[i];
 
+      // Handle time gaps
+      const timeElement = trackpoint.getElementsByTagNameNS(NS.tcx, "Time")[0];
+      if (timeElement) {
+        let currentTime = new Date(timeElement.textContent);
+
+        if (lastTrackpointTime) {
+          const gap = currentTime.getTime() - lastTrackpointTime.getTime();
+          if (gap > GAP_THRESHOLD) {
+            // Remove the gap but keep 1 second to maintain order
+            totalTimeOffset += gap - 1000;
+          }
+        }
+
+        lastTrackpointTime = new Date(currentTime.getTime()); // Save original for next gap check
+
+        // Apply offset
+        currentTime = new Date(currentTime.getTime() - totalTimeOffset);
+        timeElement.textContent = currentTime.toISOString();
+      }
+
       cumulativeDistance += deltaDistance;
       cumulativeAltitude += deltaAltitude;
 
       // Update distance
       const tpDistanceElement = trackpoint.getElementsByTagNameNS(
         NS.tcx,
-        "DistanceMeters"
+        "DistanceMeters",
       )[0];
       if (tpDistanceElement) {
         tpDistanceElement.textContent = cumulativeDistance.toFixed(2);
@@ -550,7 +588,7 @@ function generateCorrectedFile() {
       // Update or create altitude
       let altitudeElement = trackpoint.getElementsByTagNameNS(
         NS.tcx,
-        "AltitudeMeters"
+        "AltitudeMeters",
       )[0];
       if (!altitudeElement) {
         altitudeElement = tcxDoc.createElementNS(NS.tcx, "AltitudeMeters");
@@ -561,13 +599,25 @@ function generateCorrectedFile() {
       // Update speed in extensions
       const speedElement = trackpoint.getElementsByTagNameNS(
         NS.tpx,
-        "Speed"
+        "Speed",
       )[0];
       if (speedElement) {
         speedElement.textContent = speed.toFixed(2);
       }
     }
-  });
+
+    // Update TotalTimeSeconds (it might have changed if we removed gaps within a lap,
+    // although treadmill files usually don't have gaps within a lap unless paused)
+    const totalTimeElement = lapElement.getElementsByTagNameNS(
+      NS.tcx,
+      "TotalTimeSeconds",
+    )[0];
+    if (totalTimeElement) {
+      // For simplicity, we keep the original TotalTimeSeconds as it represents moving time
+      // But if gaps were removed, the elapsed time (StartTime of next lap - StartTime of this lap)
+      // will now be closer to TotalTimeSeconds.
+    }
+  }
 
   // Serialize and download
   const serializer = new XMLSerializer();
@@ -596,7 +646,7 @@ function getCurrentCumulativeDistance(lapIndex) {
   const lastTrackpoint = trackpoints[trackpoints.length - 1];
   const distanceElement = lastTrackpoint.getElementsByTagNameNS(
     NS.tcx,
-    "DistanceMeters"
+    "DistanceMeters",
   )[0];
   return parseFloat(distanceElement.textContent);
 }
@@ -610,7 +660,7 @@ function getCurrentCumulativeAltitude(lapIndex) {
   const lastTrackpoint = trackpoints[trackpoints.length - 1];
   const altitudeElement = lastTrackpoint.getElementsByTagNameNS(
     NS.tcx,
-    "AltitudeMeters"
+    "AltitudeMeters",
   )[0];
   return altitudeElement ? parseFloat(altitudeElement.textContent) : 0;
 }
