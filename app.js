@@ -189,16 +189,31 @@ function populateTable() {
     const seconds = Math.floor(lap.totalTime % 60);
     const timeFormatted = `${minutes}:${seconds.toString().padStart(2, "0")}`;
 
+    const distanceKm = (lap.newSpeed / 3.6 * lap.totalTime) / 1000;
+    const elevationM = (lap.newSpeed / 3.6 * lap.totalTime) * (lap.newIncline / 100);
+
     row.innerHTML = `
             <td>${lap.lapNumber}</td>
             <td>${timeFormatted}</td>
-            <td>${lap.currentSpeed.toFixed(2)}</td>
-            <td class="editable" onclick="editCell(${index}, 'speed', this)">
-                ${lap.newSpeed.toFixed(2)}
+            <td>
+                <span class="editable" onclick="editCell(${index}, 'speed', this)">
+                    ${lap.newSpeed.toFixed(1)}
+                </span>
             </td>
-            <td>${lap.currentIncline.toFixed(2)}</td>
-            <td class="editable" onclick="editCell(${index}, 'incline', this)">
-                ${lap.newIncline.toFixed(2)}
+            <td>
+                <span class="editable" onclick="editCell(${index}, 'distance', this)">
+                    ${distanceKm.toFixed(2)}
+                </span>
+            </td>
+            <td>
+                <span class="editable" onclick="editCell(${index}, 'incline', this)">
+                    ${lap.newIncline.toFixed(1)}
+                </span>
+            </td>
+            <td>
+                <span class="editable" onclick="editCell(${index}, 'elevation', this)">
+                    ${elevationM.toFixed(1)}
+                </span>
             </td>
         `;
     tbody.appendChild(row);
@@ -207,25 +222,44 @@ function populateTable() {
 
 // Edit cell functionality
 function editCell(lapIndex, field, cell) {
-  const currentValue =
-    field === "speed"
-      ? lapData[lapIndex].newSpeed
-      : lapData[lapIndex].newIncline;
+  const lap = lapData[lapIndex];
+  let currentValue;
+
+  if (field === "speed") {
+    currentValue = lap.newSpeed;
+  } else if (field === "distance") {
+    currentValue = ((lap.newSpeed / 3.6) * lap.totalTime) / 1000;
+  } else if (field === "incline") {
+    currentValue = lap.newIncline;
+  } else if (field === "elevation") {
+    currentValue = (lap.newSpeed / 3.6) * lap.totalTime * (lap.newIncline / 100);
+  }
 
   const input = document.createElement("input");
   input.type = "number";
-  input.step = "0.1";
-  input.value = currentValue.toFixed(2);
+  input.step = field === "distance" ? "0.01" : "0.1";
+  input.value = currentValue.toFixed(field === "distance" ? 2 : 1);
   input.style.width = "80px";
 
   input.onblur = function () {
     const newValue = parseFloat(input.value) || 0;
     if (field === "speed") {
-      lapData[lapIndex].newSpeed = newValue;
-    } else {
-      lapData[lapIndex].newIncline = newValue;
+      lap.newSpeed = newValue;
+    } else if (field === "distance") {
+      // Update speed based on new distance
+      lap.newSpeed = ((newValue * 1000) / lap.totalTime) * 3.6;
+    } else if (field === "incline") {
+      lap.newIncline = newValue;
+    } else if (field === "elevation") {
+      // Update incline based on new elevation
+      const distanceMeters = (lap.newSpeed / 3.6) * lap.totalTime;
+      if (distanceMeters > 0) {
+        lap.newIncline = (newValue / distanceMeters) * 100;
+      }
     }
-    cell.textContent = newValue.toFixed(2);
+
+    // Refresh table and others
+    populateTable();
     updateCharts();
     updateSummary();
   };
