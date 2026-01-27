@@ -215,9 +215,24 @@ function populateTable() {
                     ${elevationM.toFixed(1)}
                 </span>
             </td>
+            <td>
+                <button class="btn-reset" onclick="resetRow(${index})" title="Reset to original values">
+                    ↺
+                </button>
+            </td>
         `;
     tbody.appendChild(row);
   });
+}
+
+// Reset row to original values
+function resetRow(index) {
+  lapData[index].newSpeed = lapData[index].currentSpeed;
+  lapData[index].newIncline = lapData[index].currentIncline;
+
+  populateTable();
+  updateCharts();
+  updateSummary();
 }
 
 // Edit cell functionality
