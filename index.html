@@ -40,11 +40,127 @@
 
         <!-- Lap Data Table -->
         <section class="table-section">
-          <h2>Lap Data</h2>
+          <div class="section-header">
+            <h2>Lap Data</h2>
+            <button class="btn-secondary btn-sm" onclick="toggleBulkEdit()">
+              ⚡ Bulk Edit
+            </button>
+          </div>
           <p class="table-hint">
             💡 Click on speed, distance, incline or elevation values to edit
             them
           </p>
+
+          <!-- Bulk Edit Section -->
+          <div id="bulkEditSection" class="bulk-edit-section hidden">
+            <div class="bulk-edit-card">
+              <div class="bulk-header">
+                <h3>⚡ Bulk Edit Laps</h3>
+                <button class="btn-close" onclick="toggleBulkEdit()">×</button>
+              </div>
+
+              <div class="bulk-content">
+                <!-- Selection Column -->
+                <div class="bulk-col">
+                  <h4>1. Select Laps</h4>
+                  <div class="quick-filters">
+                    <button class="filter-btn" onclick="selectLaps('all')">
+                      All
+                    </button>
+                    <button class="filter-btn" onclick="selectLaps('odd')">
+                      Odd
+                    </button>
+                    <button class="filter-btn" onclick="selectLaps('even')">
+                      Even
+                    </button>
+                    <button class="filter-btn" onclick="selectLaps('none')">
+                      Clear
+                    </button>
+                  </div>
+                  <div class="selection-input-wrapper">
+                    <label for="lapSelection">Selected Laps:</label>
+                    <input
+                      type="text"
+                      id="lapSelection"
+                      placeholder="e.g. 1-5, 8, 10"
+                    />
+                    <p class="hint">
+                      Type specific numbers (e.g. 1, 3, 5) or ranges (e.g. 1-10)
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Action Column -->
+                <div class="bulk-col">
+                  <h4>2. Set Values</h4>
+                  <div class="action-grid-rows">
+                    <!-- Speed / Distance Pair -->
+                    <div class="action-pair-container">
+                      <div class="action-pair">
+                        <div class="action-group">
+                          <label>Speed (km/h)</label>
+                          <input
+                            type="number"
+                            id="bulkSpeedValue"
+                            step="0.1"
+                            placeholder="-"
+                            oninput="handleBulkInput('speed')"
+                          />
+                        </div>
+                        <div class="pair-separator">or</div>
+                        <div class="action-group">
+                          <label>Distance (km)</label>
+                          <input
+                            type="number"
+                            id="bulkDistanceValue"
+                            step="0.01"
+                            placeholder="-"
+                            oninput="handleBulkInput('distance')"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Incline / Elevation Pair -->
+                    <div class="action-pair-container">
+                      <div class="action-pair">
+                        <div class="action-group">
+                          <label>Incline (%)</label>
+                          <input
+                            type="number"
+                            id="bulkInclineValue"
+                            step="0.1"
+                            placeholder="-"
+                            oninput="handleBulkInput('incline')"
+                          />
+                        </div>
+                        <div class="pair-separator">or</div>
+                        <div class="action-group">
+                          <label>Elevation (m)</label>
+                          <input
+                            type="number"
+                            id="bulkElevationValue"
+                            step="0.1"
+                            placeholder="-"
+                            oninput="handleBulkInput('elevation')"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="bulk-actions">
+                    <button
+                      class="btn-primary full-width"
+                      onclick="applyBulkEdit()"
+                    >
+                      Apply Changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="table-container">
             <table id="lapTable">
               <thead>

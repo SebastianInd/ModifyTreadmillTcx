@@ -737,3 +737,176 @@ function resetApp() {
     speedChart = null;
   }
 }
+
+// ... (existing reset logic)
+
+// Bulk Edit Functions
+function toggleBulkEdit() {
+  const section = document.getElementById("bulkEditSection");
+  section.classList.toggle("hidden");
+  
+  // If opening, maybe pre-select something? No.
+}
+
+function selectLaps(type) {
+  if (!lapData.length) return;
+
+  let selected = [];
+
+  if (type === "all") {
+    selected = lapData.map((l) => l.lapNumber);
+  } else if (type === "odd") {
+    selected = lapData
+      .filter((l) => l.lapNumber % 2 !== 0)
+      .map((l) => l.lapNumber);
+  } else if (type === "even") {
+    selected = lapData
+      .filter((l) => l.lapNumber % 2 === 0)
+      .map((l) => l.lapNumber);
+  } else if (type === "none") {
+    selected = [];
+  }
+
+  document.getElementById("lapSelection").value = formatLapSelection(selected);
+}
+
+function formatLapSelection(laps) {
+  if (!laps.length) return "";
+
+  laps.sort((a, b) => a - b);
+
+  let ranges = [];
+  let start = laps[0];
+  let prev = laps[0];
+
+  for (let i = 1; i < laps.length; i++) {
+    if (laps[i] === prev + 1) {
+      prev = laps[i];
+    } else {
+      ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+      start = laps[i];
+      prev = laps[i];
+    }
+  }
+  ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+
+  return ranges.join(", ");
+}
+
+function parseLapSelection(selectionStr) {
+  const selected = new Set();
+  const parts = selectionStr
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s);
+
+  parts.forEach((part) => {
+    if (part.includes("-")) {
+      const [start, end] = part.split("-").map((n) => parseInt(n));
+      if (!isNaN(start) && !isNaN(end)) {
+        for (let i = start; i <= end; i++) selected.add(i);
+      }
+    } else {
+      const num = parseInt(part);
+      if (!isNaN(num)) selected.add(num);
+    }
+  });
+
+  return Array.from(selected);
+}
+
+
+function handleBulkInput(field) {
+  const speedInput = document.getElementById("bulkSpeedValue");
+  const distanceInput = document.getElementById("bulkDistanceValue");
+  const inclineInput = document.getElementById("bulkInclineValue");
+  const elevationInput = document.getElementById("bulkElevationValue");
+
+  if (field === "speed" && speedInput.value !== "") {
+    distanceInput.value = "";
+  } else if (field === "distance" && distanceInput.value !== "") {
+    speedInput.value = "";
+  } else if (field === "incline" && inclineInput.value !== "") {
+    elevationInput.value = "";
+  } else if (field === "elevation" && elevationInput.value !== "") {
+    inclineInput.value = "";
+  }
+}
+
+function applyBulkEdit() {
+  const selectionStr = document.getElementById("lapSelection").value;
+  const selectedLaps = parseLapSelection(selectionStr);
+
+  if (selectedLaps.length === 0) {
+    alert("Please select at least one lap.");
+    return;
+  }
+
+  // Get values
+  const speedValRaw = document.getElementById("bulkSpeedValue").value;
+  const distanceValRaw = document.getElementById("bulkDistanceValue").value;
+  const inclineValRaw = document.getElementById("bulkInclineValue").value;
+  const elevationValRaw = document.getElementById("bulkElevationValue").value;
+
+  const speedVal = speedValRaw ? parseFloat(speedValRaw) : null;
+  const distanceVal = distanceValRaw ? parseFloat(distanceValRaw) : null;
+  const inclineVal = inclineValRaw ? parseFloat(inclineValRaw) : null;
+  const elevationVal = elevationValRaw ? parseFloat(elevationValRaw) : null;
+
+  if (speedVal === null && distanceVal === null && inclineVal === null && elevationVal === null) {
+    alert("Please enter a value to update.");
+    return;
+  }
+
+  let changesCount = 0;
+
+  lapData.forEach((lap) => {
+    if (selectedLaps.includes(lap.lapNumber)) {
+      // 1. Update Speed/Distance
+      if (speedVal !== null) {
+        lap.newSpeed = speedVal;
+        if (lap.newSpeed < 0) lap.newSpeed = 0;
+      } else if (distanceVal !== null) {
+        // Calculate speed from distance
+        // distance (km) = (speed (km/h) / 3.6) * time (s) / 1000
+        // speed (km/h) = (distance (km) * 1000 / time (s)) * 3.6
+        if (lap.totalTime > 0) {
+          lap.newSpeed = (distanceVal * 1000 / lap.totalTime) * 3.6;
+        } else {
+          lap.newSpeed = 0;
+        }
+      }
+
+      // 2. Update Incline/Elevation
+      // Note: We use the NEW speed to calculate distance for the elevation calc
+      const currentLapDistanceMeters = (lap.newSpeed / 3.6) * lap.totalTime;
+
+      if (inclineVal !== null) {
+        lap.newIncline = inclineVal;
+      } else if (elevationVal !== null) {
+        // Calculate incline from elevation
+        // elevation (m) = distance (m) * (incline / 100)
+        // incline = (elevation (m) / distance (m)) * 100
+        if (currentLapDistanceMeters > 0) {
+          lap.newIncline = (elevationVal / currentLapDistanceMeters) * 100;
+        } else {
+          lap.newIncline = 0;
+        }
+      }
+
+      changesCount++;
+    }
+  });
+
+  populateTable();
+  updateCharts();
+  updateSummary();
+  
+  // Provide mild feedback
+  const applyBtn = document.querySelector(".bulk-actions .btn-primary");
+  const originalText = applyBtn.textContent;
+  applyBtn.textContent = "✅ Applied!";
+  setTimeout(() => {
+    applyBtn.textContent = originalText;
+  }, 1500);
+}
