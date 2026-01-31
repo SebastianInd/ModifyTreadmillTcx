@@ -334,10 +334,28 @@ tbody tr:hover {
 
 .action-section {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   margin-top: 2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
+  gap: 1.5rem;
+}
+
+.download-note {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  max-width: 600px;
+  text-align: center;
+  animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+.download-note strong {
+  color: #fbbf24;
 }
 
 /* Summary Section */
